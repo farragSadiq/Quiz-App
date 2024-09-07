@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
+
+    body {
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      min-height: 100vh;
+      font-family: "Red Hat Display", sans-serif;
+      color: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+
+    .btn {
+      background: none;
+      outline: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 0 1px rgba(255, 245, 255, .7), 0 0 3px rgba(255, 245, 255, .6), 0 0 9px rgba(255, 245, 255, .4), 0 0 29px rgba(255, 245, 255, .3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      min-width: 80px;
+      border-width: 2px;
+      border-image: linear-gradient(270deg, #ca6dca, #6dcaca) 1;
+    }
+
+    .btn:not([disabled]):hover {
+      box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #d892d8, 0 0 6px #d892d8, 0 0 9px #d892d8;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      text-shadow: none;
+      color: lightgray;
+    }
+
+    .loading {
+      width: 100%;
+      height: 100%;
+      font-size: 2rem;
+      color: #963696;
+    }
+
+
+    .heading {
+      text-align: center;
+      padding: 10px 0;
+      background-image: linear-gradient(45deg, #0a8f8f, #963696 90%);
+      background-clip: text;
+      color: transparent;
+      font-size: 1.7rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+
+
+    .btn.start {
+      align-self: center;
+      min-width: 33%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .133);
+      background-image: linear-gradient(45deg, #0a8f8f, #963696 90%);
+      background-clip: text;
+      color: transparent;
+      text-shadow: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 44px;
+    }
+
+    .quiz {
+      position: relative;
+      background: linear-gradient(to top right, #23afaf, #af23af);
+      height: 100%;
+      width: 100%;
+      max-width: 768px;
+      margin: 0 auto;
+      padding: 10px;
+      flex-direction: column;
+      border-radius: 8px;
+    }
+
+    .question-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .choices {
+      list-style: none;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .choice {
+      background-color: rgba(191, 191, 191, 0.15);
+      padding: 4px 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .133);
+      min-height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .question-body.solved {
+      pointer-events: none;
+    }
+
+    .question-body.solved .correct {
+      background: linear-gradient(30deg, #2aa, #92d8d8);
+    }
+
+    .question-body.solved .wrong {
+      border: 2px solid red;
+    }
+
+    .navigate {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .result {
+      margin-top: 20px;
+      text-shadow: 0 0 1px rgba(255, 245, 255, .7), 0 0 3px rgba(255, 245, 255, .6), 0 0 9px rgba(255, 245, 255, .4), 0 0 29px rgba(255, 245, 255, .3);
+    }
+
+    .restart {
+      margin: 10px auto 0;
+    }
+  </style>
+  <title>Quiz</title>
+</head>
+
+<body>
+  <h1 class="heading">Test Your Knowledge</h1>
+
+  <button class="start btn">Start</button>
+  <div class="loading d-none">Wait...</div>
+  <div class="quiz d-none">
+    <div class="quiz-body">
+      <div class="question-wrapper">
+
+      </div>
+
+    </div>
+    <div class="navigate">
+      <button class="prev btn">Prev</button>
+      <button class="submit btn" disabled>Submit</button>
+      <button class="next btn">Next</button>
+    </div>
+    <h2 class="result d-none"></h2>
+    <button class="btn restart">Play again</button>
+  </div>
+  </div>
+
+  <script>
+    const quiz = document.querySelector(".quiz")
+    const questionWrapper = document.querySelector('.question-wrapper')
+    const startBtn = document.querySelector('.start')
+    const restartBtn = document.querySelector('.restart')
+    const nextBtn = document.querySelector('.next')
+    const prevBtn = document.querySelector('.prev')
+    const submit = document.querySelector('.submit')
+    const finalResult = document.querySelector('.result')
+    const loading = document.querySelector(".loading")
+
+    let questionItems = null
+    let currentQ = 0;
+    let answered = 0
+    let result = 0
+
+
+    async function fetchQuestions(url) {
+
+      let response = await fetch(url);
+      let data = await response.json();
+      let questions = await data.results
+
+
+
+      questionItems = await questions.map(quest => {
+        return {
+          question: quest.question,
+          correct: quest.correct_answer,
+          allAnswers: [...quest.incorrect_answers, quest.correct_answer],
+          isSolved: false,
+          clickedItem: null
+        }
+      })
+    }
+
+
+
+    function startQuiz() {
+      currentQ = answered = result = 0
+      Array(quiz, startBtn, restartBtn, finalResult).forEach(el => el.classList.add("d-none"))
+      loading.classList.remove("d-none")
+      fetchQuestions("https://opentdb.com/api.php?amount=10&category=22&difficulty=easy&type=multiple")
+        .then(showQuestion)
+    }
+
+
+    function showQuestion(e) {
+      if (e) e.target.classList.contains("next") ? currentQ += 1 : currentQ -= 1
+
+      if (currentQ === 0) { prevBtn.setAttribute('disabled', "true") } else {
+        prevBtn.removeAttribute('disabled')
+      }
+      if (currentQ === 9) { nextBtn.setAttribute('disabled', "true") } else {
+        nextBtn.removeAttribute('disabled')
+      }
+
+
+      questionWrapper.innerHTML = `
+      <div class="question-body  ${questionItems[currentQ].isSolved ? "solved" : ""}">
+          <div class="question">${currentQ + 1}- ${questionItems[currentQ].question}</div>
+        <ul class="choices">${showChoices()}</ul >
+      </div >
+      </div > `
+
+      document.querySelectorAll(".choice").forEach(choice => choice.addEventListener("click", e => questionSolved(e)))
+
+      loading.classList.add("d-none")
+      quiz.classList.remove("d-none")
+    }
+
+
+
+    function showChoices() {
+      let answers = questionItems[currentQ].allAnswers.sort()
+      let items = "";
+      for (let choice of answers) {
+        items += `
+        <li class="choice ${questionItems[currentQ].correct === choice ? "correct" : ""} ${questionItems[currentQ].clickedItem === choice ? "wrong" : ""}">
+          ${choice}
+        </li>`
+      }
+      return items
+    }
+
+
+    function questionSolved(e) {
+      questionItems[currentQ].isSolved = true
+      document.querySelector(".question-body").classList.add("solved")
+      if (e.target.classList.contains("correct")) {
+        result += 1
+      } else {
+        questionItems[currentQ].clickedItem = e.target.innerHTML.trim()
+        e.target.classList.add("wrong")
+      }
+      answered += 1
+      if (answered === 10) submit.removeAttribute("disabled")
+    }
+
+
+    function showResult() {
+      finalResult.innerHTML = `Result: ${result}/10`
+      finalResult.classList.remove("d-none")
+      restartBtn.classList.remove("d-none")
+      submit.setAttribute("disabled", "true")
+    }
+
+
+    startBtn.addEventListener('click', startQuiz)
+    nextBtn.addEventListener('click', (e) => showQuestion(e))
+    prevBtn.addEventListener('click', (e) => showQuestion(e))
+    submit.addEventListener("click", showResult)
+    restartBtn.addEventListener('click', startQuiz)
+
+
+  </script>
+</body>
+
+</html>
